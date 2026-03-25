@@ -1,3 +1,23 @@
+; Standalone demo harness for isPrime
+.ORIG x3000
+    LD R6, STACK_TOP
+    GETC
+    OUT
+    ; Convert ASCII digit to numeric value: R0 = ('0'..'9') => 0..9
+    LD R1, NEGATIVE_ASCII_ZERO
+    ADD R0, R0, R1
+    JSR isPrime
+    ADD R0, R0, #0          ; set CC from prime flag
+    ; Convert prime flag (0/1) to ASCII and print
+    LD R3, ASCII_ZERO
+    ADD R0, R0, R3
+    OUT
+
+    AND R0, R0, #0
+    ADD R0, R0, #13
+    OUT
+    HALT
+
 ; --- SUBROUTINE: isPrime ---
 ; Input : R0 = number
 ; Output: R0 = 1 if prime, 0 otherwise
@@ -54,3 +74,10 @@ PRIME_RETURN
     LDR R7, R6, #0             ; restore return address
     ADD R6, R6, #1             ; pop stack
     RET
+
+; Local data used by standalone harness + isPrime demo output
+STACK_TOP            .FILL xFDFF
+NEGATIVE_ASCII_ZERO  .FILL #-48
+ASCII_ZERO           .FILL x0030
+
+.END

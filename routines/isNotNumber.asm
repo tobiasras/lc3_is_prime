@@ -1,3 +1,20 @@
+
+.ORIG x3000
+    LD R6, STACK_TOP
+    GETC                    ; ASCII in R0
+    OUT                     ; echo character
+    ADD R2, R0, #0         ; R2 = ASCII for validator
+    JSR isNotNumber        ; R0=0 valid digit, 1 invalid digit
+
+    LD R3, ASCII_ZERO      ; convert flag to ASCII '0'/'1'
+    ADD R0, R0, R3
+    OUT
+
+    AND R0, R0, #0
+    ADD R0, R0, #13
+    OUT
+    HALT
+
 ; --- SUBROUTINE: isNotNumber ---
 ; Input : R2 = ASCII character to validate
 ; Output: R0 = 0 if character is digit ('0'..'9'), else 1
@@ -30,3 +47,9 @@ EXIT:
 
 ; Local data used by isNotNumber
 NEGATIVE_ASCII_ZERO .FILL #-48
+
+; Local data used by standalone harness
+STACK_TOP   .FILL xFDFF
+ASCII_ZERO  .FILL x0030
+
+.END

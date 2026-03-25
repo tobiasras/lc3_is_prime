@@ -1,9 +1,15 @@
+; Standalone demo harness for readS
+.ORIG x3000
+    LD R6, STACK_TOP
+    JSR readS
+    HALT
+
 ; --- readS ---
 ; Input : none
 ; Output: R0 = parsed number (0-99), or -1 for invalid character input
 ; Note  : This parser currently accepts one-digit (digit + Enter)
 ;         and two-digit numbers.
-; Depends on external routines: isNotNumber, multiply
+; Includes its own dependencies (isNotNumber, multiply) for standalone running
 
 readS
     ADD R6, R6, #-1
@@ -77,3 +83,57 @@ NOT_A_NUMBER:
 ; Local data used by readS
 ask_for_a_number .STRINGZ "Input a number.\n"
 bad_input        .STRINGZ " <-- Bad input! (TYPE A NUMBER)\n"
+
+
+; Local data used by standalone harness + dependencies
+STACK_TOP        .FILL xFDFF
+NEGATIVE_ASCII_ZERO .FILL #-48
+
+; --- SUBROUTINE: isNotNumber ---
+; Input : R2 = ASCII character to validate
+; Output: R0 = 0 if character is digit ('0'..'9'), else 1
+;         R1 = digit value 0..9 when valid
+isNotNumber
+    ADD R6, R6, #-1           
+    STR R7, R6, #0
+
+    AND R1, R1, #0
+    LD R1, NEGATIVE_ASCII_ZERO ; R1 = -'0'
+    ADD R0, R2, R1             ; R0 = ASCII - '0'
+    AND R1, R1, #0
+    ADD R1, R1, R0              ; store converted digit candidate in R1
+    BRn EXIT_NOT_NUMBER         ; < 0 means below '0'
+
+    ADD R0, R0, #-9             ; test upper bound against 9
+    BRp EXIT_NOT_NUMBER         ; > 9 means above '9'
+    AND R0, R0, #0              ; valid digit => return 0 (false: not "not number")
+    BR EXIT
+
+EXIT_NOT_NUMBER:
+    AND R0, R0, #0
+    ADD R0, R0, #1             ; invalid digit => return 1
+
+EXIT:
+    LDR R7, R6, #0             
+    ADD R6, R6, #1             
+    RET
+
+; --- multiply ---
+; Input : R0 = multiplicand, R1 = multiplier
+; Output: R0 = multiplicand * multiplier
+multiply
+    ADD R6, R6, #-1            
+    STR R7, R6, #0
+    ADD R2, R0, #0             ; keep multiplicand in R2
+    AND R0, R0, #0             ; clear result accumulator
+
+LOOP_START
+    ADD R0, R0, R2             ; accumulate multiplicand
+    ADD R1, R1, #-1            ; decrement remaining iterations
+    BRp LOOP_START             ; repeat while multiplier still positive
+
+    LDR R7, R6, #0             
+    ADD R6, R6, #1             
+    RET
+
+.END
