@@ -16,10 +16,15 @@ multiply
     ADD R2, R0, #0             ; keep multiplicand in R2
     AND R0, R0, #0             ; clear result accumulator
 
+    ADD R1, R1, #0             ; if multiplier <= 0, product is 0
+    BRnz MUL_DONE
+
 LOOP_START
     ADD R0, R0, R2             ; accumulate multiplicand
     ADD R1, R1, #-1            ; decrement remaining iterations
     BRp LOOP_START             ; repeat while multiplier still positive
+
+MUL_DONE
 
     LDR R7, R6, #0             
     ADD R6, R6, #1             
